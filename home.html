@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>מרכז ניהול עסקי</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',Tahoma,sans-serif;direction:rtl;background:#f0f2f5;color:#1a1a2e;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+    .header{background:linear-gradient(135deg,#3d7a52,#4a8f62);padding:0 24px;display:flex;align-items:center;gap:16px;height:56px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+    .header-logo{font-size:20px;font-weight:900;color:#fff;}
+    .layout{display:flex;flex:1;overflow:hidden;}
+    .sidebar{display:none}
+    
+    
+    
+    
+    .content{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+    .pane{display:none;flex:1;overflow:hidden;}
+    .pane.active{display:flex;flex-direction:column;}
+    .welcome-pane{padding-top:0;
+    align-items:center;justify-content:center;
+    background:url('https://drive.google.com/thumbnail?id=1gse7m2Jh5gacuAvepjm3RbvXBk3EKYvH&sz=w1600') center top / cover no-repeat;
+    position:relative;overflow:hidden;
+  }
+  .welcome-pane::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(to bottom, rgba(0,0,0,.45) 0%, rgba(0,0,0,.3) 50%, rgba(0,0,0,.55) 100%);
+  }
+  .welcome-pane::after{
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);
+    background-size:30px 30px;
+  }
+    .welcome-box{text-align:center;color:#fff;padding:40px;}
+    .welcome-box h1{font-size:34px;font-weight:900;margin-bottom:10px;}
+    .welcome-box p{font-size:16px;color:rgba(255,255,255,.6);margin-bottom:40px;}
+    .app-cards{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;max-width:1100px;}
+    .app-card{background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:28px 22px;width:210px;cursor:pointer;transition:all .25s;text-align:center;backdrop-filter:blur(4px);position:relative;z-index:1;}
+    .app-card:hover{background:rgba(0,0,0,.25);transform:translateY(-4px);border-color:rgba(255,255,255,.3);box-shadow:0 12px 30px rgba(0,0,0,.4);}
+    .app-card .ac-icon{font-size:42px;margin-bottom:12px;display:block;}
+    .app-card h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;}
+    .app-card p{font-size:12px;color:rgba(255,255,255,.6);}
+    .iframe-pane{flex:1;border:none;width:100%;height:100%;}
+    .inner-pane{flex:1;overflow-y:auto;padding:24px;}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+    .page-header h2{font-size:20px;font-weight:800;}
+    .btn{padding:9px 18px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}
+    .btn-green{background:#16a34a;color:#fff;}
+    .btn-ghost{background:#f1f5f9;color:#475569;}
+    .btn-red{background:#dc2626;color:#fff;padding:5px 10px;font-size:12px;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+    .emp-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);display:flex;gap:14px;}
+    .emp-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1e3a5f,#0f4c81);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;flex-shrink:0;}
+    .emp-info{flex:1;}
+    .emp-name{font-size:15px;font-weight:700;margin-bottom:3px;}
+    .emp-role{font-size:12px;color:#64748b;margin-bottom:8px;}
+    .chip{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;display:inline-block;}
+    .chip-blue{background:#dbeafe;color:#1d4ed8;}
+    .chip-green{background:#dcfce7;color:#15803d;}
+    .chip-yellow{background:#fef3c7;color:#92400e;}
+    .chip-red{background:#fee2e2;color:#b91c1c;}
+    .task-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+    .task-col{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+    .task-col-header{font-size:13px;font-weight:700;color:#475569;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;display:flex;align-items:center;gap:8px;}
+    .task-card{background:#f8faff;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;}
+    .task-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);}
+    .task-title{font-size:14px;font-weight:600;margin-bottom:6px;}
+    .task-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#94a3b8;}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+    .cal-day-name{text-align:center;font-size:12px;font-weight:700;color:#64748b;padding:8px 0;}
+    .cal-day{background:#fff;border-radius:8px;padding:8px;min-height:80px;border:1.5px solid #e2e8f0;cursor:pointer;}
+    .cal-day:hover{border-color:#0f172a;}
+    .cal-day.today{border-color:#2563eb;background:#eff6ff;}
+    .cal-day.other-month{opacity:.35;}
+    .cal-day .day-num{font-size:13px;font-weight:700;margin-bottom:4px;}
+    .cal-event{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .ev-blue{background:#dbeafe;color:#1d4ed8;}
+    .ev-green{background:#dcfce7;color:#15803d;}
+    .ev-red{background:#fee2e2;color:#b91c1c;}
+    .ev-yellow{background:#fef3c7;color:#92400e;}
+    .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center;}
+    .mo.on{display:flex;}
+    .mbox{background:#fff;border-radius:16px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);}
+    .mhdr{padding:20px 24px 16px;border-bottom:1.5px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:700;}
+    .mcls{background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;}
+    .mbody{padding:22px 24px;}
+    .mftr{padding:14px 24px;border-top:1.5px solid #f1f5f9;display:flex;gap:10px;justify-content:flex-end;}
+    .field{margin-bottom:14px;}
+    .field label{display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px;}
+    .field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+    .app-tabs{display:none;background:#3d7a52;padding:0 16px;border-bottom:2px solid rgba(255,255,255,.1);}
+    .app-tabs.show{display:flex;gap:4px;align-items:flex-end;}
+    .app-tab{padding:8px 16px;font-size:13px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;border-radius:8px 8px 0 0;border:none;background:none;font-family:inherit;transition:all .15s;}
+    .app-tab:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.07);}
+    .app-tab.active{background:#6abf69;color:#fff;}
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="header-logo"><button onclick="goHome()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 12px;color:#fff;cursor:pointer;font-size:18px" title="דף הבית">&#127968;</button> מרכז ניהול עסקי</div><div style="margin-right:auto"><img src="https://drive.google.com/thumbnail?id=1Qw6C_9chtgQRBv9ZmI4z-UxDvSdWmLus&sz=w400" alt="אורסיד" style="height:76px;object-fit:contain;filter:brightness(10)" onerror="this.style.display='none'"></div>
+</div>
+<div class="app-tabs" id="appTabs">
+  <button class="app-tab" onclick="openExternal(ICOUNT_URL)" data-url="ICOUNT_URL">&#128200; ניהול ספקים</button>
+  <button class="app-tab" onclick="openExternal(EMPLOYEES_URL)" data-url="EMPLOYEES_URL">&#128101; עובדים</button>
+  <button class="app-tab" onclick="openExternal(CALENDAR_URL)" data-url="CALENDAR_URL">&#9989; משימות ויומן</button>
+  <button class="app-tab" onclick="window.open(SHEETS_URL,'_blank')" data-url="SHEETS_URL">&#128202; Sheets</button>
+  <button class="app-tab" onclick="openExternal(INVOICES_URL)" data-url="INVOICES_URL">&#128235; חשבוניות זרם דרום</button>
+  <button class="app-tab" onclick="openExternal(INVOICES2_URL)" data-url="INVOICES2_URL">&#128235; חשבוניות אורסיד</button>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">ראשי</div>
+    <div class="nav-item active" onclick="goHome()">&#127968; דף הבית</div>
+    <div class="sidebar-section">פיננסים</div>
+    <div class="nav-item" onclick="openExternal(ICOUNT_URL)">&#128200; ניהול ספקים והוצאות</div>
+    <div class="sidebar-section">משאבי אנוש</div>
+    <div class="nav-item" onclick="openExternal(EMPLOYEES_URL)">&#128101; עובדים</div>
+    <div class="nav-item" onclick="openExternal(CALENDAR_URL)">&#128197; יומן</div>
+    <div class="sidebar-section">ניהול</div>
+    <div class="nav-item" onclick="openExternal(CALENDAR_URL)">&#9989; משימות</div>
+    <div class="sidebar-section">כלים</div>
+    <div class="nav-item" onclick="window.open(SHEETS_URL,'_blank')">&#128202; Google Sheets</div>
+    <div class="nav-item" onclick="openExternal(INVOICES_URL)">&#128235; חשבוניות זרם דרום</div>
+    <div class="nav-item" onclick="openExternal(INVOICES2_URL)">&#128235; חשבוניות אורסיד בע"מ</div>
+  </div>
+  <div class="content">
+    <div class="pane welcome-pane active" id="pane-welcome">
+      <div class="welcome-box">
+        <div style="margin-bottom:36px;position:relative;z-index:1">
+
+          <img src="https://upload.wikimedia.org/wikipedia/he/9/92/Baba_Sali.jpg"
+               alt="הבבא סאלי זיע"
+               style="width:80px;height:96px;object-fit:cover;object-position:top;border-radius:12px;border:3px solid rgba(255,255,255,.3);box-shadow:0 8px 32px rgba(0,0,0,.5);margin-bottom:16px">
+          <h1 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.3)">ברוך הבא</h1>
+          <div style="width:60px;height:3px;background:linear-gradient(90deg,#6abf69,#2d7a2d);border-radius:2px;margin:0 auto 12px"></div>
+          <p style="font-size:16px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:3px">חברת אורסיד בע&quot;מ</p>
+          <p style="font-size:12px;color:rgba(255,255,255,.4);letter-spacing:1px">חברה לעבודות חשמל ותקשורת</p>
+        </div>
+        <div class="app-cards">
+          <div class="app-card" onclick="openExternal(ICOUNT_URL)">
+            <span class="ac-icon">&#128200;</span>
+            <h3>תזרים iCount</h3>
+            <p>הכנסות, הוצאות, ספקים</p>
+          </div>
+          <div class="app-card" onclick="openExternal(EMPLOYEES_URL)">
+            <span class="ac-icon">&#128101;</span>
+            <h3>עובדים</h3>
+            <p>ניהול כוח אדם</p>
+          </div>
+          <div class="app-card" onclick="openExternal(CALENDAR_URL)">
+            <span class="ac-icon">&#9989;</span>
+            <h3>משימות ויומן</h3>
+            <p>מעקב ותזמון</p>
+          </div>
+          <div class="app-card" onclick="window.open(SHEETS_URL,'_blank')">
+            <span class="ac-icon">&#128202;</span>
+            <h3>Google Sheets</h3>
+            <p>גיליונות וניתוח נתונים</p>
+          </div>
+          <div class="app-card" onclick="openExternal(INVOICES_URL)">
+            <span class="ac-icon">&#128235;</span>
+            <h3>חשבוניות זרם דרום</h3>
+            <p>שליפה אוטומטית</p>
+          </div>
+          <div class="app-card" onclick="openExternal(INVOICES2_URL)">
+            <span class="ac-icon">&#128235;</span>
+            <h3>חשבוניות אורסיד</h3>
+            <p>שליפה אוטומטית</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pane" id="pane-icount">
+      <iframe class="iframe-pane" id="ifIcount" src="about:blank"></iframe>
+    </div>
+    <div class="pane" id="pane-employees">
+      <div class="inner-pane">
+        <div class="page-header">
+          <h2>&#128101; עובדים</h2>
+          <button class="btn btn-green" onclick="openEmpMo()">+ הוסף עובד</button>
+        </div>
+        <div class="grid" id="empGrid"></div>
+      </div>
+    </div>
+    <div class="pane" id="pane-tasks">
+      <div class="inner-pane">
+        <div class="page-header">
+          <h2>&#9989; משימות</h2>
+          <button class="btn btn-green" onclick="openTaskMo()">+ משימה חדשה</button>
+        </div>
+        <div class="task-cols" id="taskCols"></div>
+      </div>
+    </div>
+    <div class="pane" id="pane-calendar">
+      <div class="inner-pane">
+        <div class="page-header">
+          <h2>&#128197; יומן</h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn btn-ghost" onclick="prevM()">&#8250;</button>
+            <span id="calTitle" style="font-size:16px;font-weight:700;min-width:130px;text-align:center"></span>
+            <button class="btn btn-ghost" onclick="nextM()">&#8249;</button>
+            <button class="btn btn-green" onclick="openEvMo()">+ אירוע</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <!-- Main iframe -->
+    <div class="pane" id="pane-iframe">
+      <iframe id="mainIframe" src="about:blank" style="width:100%;height:100%;border:none;flex:1"></iframe>
+    </div>
+
+    <!-- Google Sheets -->
+    <div class="pane" id="pane-sheets">
+      <iframe class="iframe-pane" id="ifSheets" src="about:blank"></iframe>
+    </div>
+
+    <!-- Invoice extractor -->
+    <div class="pane" id="pane-invoices">
+      <iframe class="iframe-pane" id="ifInvoices" src="about:blank"></iframe>
+    </div>
+
+    <!-- Invoices Orsid -->
+    <div class="pane" id="pane-invoices2">
+      <iframe class="iframe-pane" id="ifInvoices2" src="about:blank"></iframe>
+    </div>
+
+    <!-- App 3 -->
+    <div class="pane" id="pane-app3">
+      <iframe class="iframe-pane" id="ifApp3" src="about:blank"></iframe>
+    </div>
+
+  </div>
+</div>
+
+<!-- Employee Modal -->
+<div class="mo" id="empMo" onclick="if(event.target===this)closeEmpMo()">
+  <div class="mbox">
+    <div class="mhdr"><span id="empMoT">הוסף עובד</span><button class="mcls" onclick="closeEmpMo()">&#10005;</button></div>
+    <div class="mbody">
+      <div class="g2">
+        <div class="field"><label>שם פרטי</label><input id="eF" placeholder="ישראל"></div>
+        <div class="field"><label>שם משפחה</label><input id="eL" placeholder="ישראלי"></div>
+      </div>
+      <div class="field"><label>תפקיד</label><input id="eRo" placeholder="מנהל / פועל..."></div>
+      <div class="g2">
+        <div class="field"><label>טלפון</label><input id="ePh" type="tel"></div>
+        <div class="field"><label>מייל</label><input id="eMl" type="email"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>תאריך התחלה</label><input id="eSt" type="date"></div>
+        <div class="field"><label>סטטוס</label>
+          <select id="eSs">
+            <option value="active">פעיל</option>
+            <option value="part">חלקי</option>
+            <option value="leave">חופשה</option>
+            <option value="ended">סיים</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>הערות</label><textarea id="eNo" rows="2"></textarea></div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-ghost" onclick="closeEmpMo()">ביטול</button>
+      <button class="btn btn-green" onclick="saveEmp()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="mo" id="taskMo" onclick="if(event.target===this)closeTaskMo()">
+  <div class="mbox">
+    <div class="mhdr"><span>משימה</span><button class="mcls" onclick="closeTaskMo()">&#10005;</button></div>
+    <div class="mbody">
+      <div class="field"><label>כותרת</label><input id="tTi" placeholder="תיאור המשימה"></div>
+      <div class="g2">
+        <div class="field"><label>סטטוס</label>
+          <select id="tSt">
+            <option value="todo">לביצוע</option>
+            <option value="doing">בתהליך</option>
+            <option value="done">הושלם</option>
+          </select>
+        </div>
+        <div class="field"><label>עדיפות</label>
+          <select id="tPr">
+            <option value="low">נמוכה</option>
+            <option value="medium">בינונית</option>
+            <option value="high">גבוהה</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>תאריך יעד</label><input id="tDu" type="date"></div>
+        <div class="field"><label>אחראי</label><input id="tOw" placeholder="שם העובד"></div>
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-ghost" onclick="closeTaskMo()">ביטול</button>
+      <button class="btn btn-green" onclick="saveTask()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="mo" id="evMo" onclick="if(event.target===this)closeEvMo()">
+  <div class="mbox">
+    <div class="mhdr"><span>אירוע</span><button class="mcls" onclick="closeEvMo()">&#10005;</button></div>
+    <div class="mbody">
+      <div class="field"><label>כותרת</label><input id="evTi" placeholder="שם האירוע"></div>
+      <div class="g2">
+        <div class="field"><label>תאריך</label><input id="evDt" type="date"></div>
+        <div class="field"><label>צבע</label>
+          <select id="evCo">
+            <option value="ev-blue">כחול</option>
+            <option value="ev-green">ירוק</option>
+            <option value="ev-red">אדום</option>
+            <option value="ev-yellow">צהוב</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-ghost" onclick="closeEvMo()">ביטול</button>
+      <button class="btn btn-green" onclick="saveEv()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+  //  הכנס כאן את הקישורים שלך
+  // ══════════════════════════════════════
+  var ICOUNT_URL      = "https://script.google.com/macros/s/AKfycbw53K6t5APdiP48qdAsM6ox_51CkTZ-upSQDizw0SDG_Bg7gjAnDLRLciwdAWONedwZ/exec";
+  var SHEETS_URL      = "https://docs.google.com/spreadsheets/u/0/";
+  var INVOICES_URL    = "https://script.google.com/macros/s/AKfycbyO6wjHjkkdZZRg01xSNPMbd_we1yFv8mQaGoWExHGCz9kVoDeIumVOoQREhexFx9bvtQ/exec";
+  var INVOICES2_URL   = "https://script.google.com/macros/s/AKfycby-MNiG7jV1VLKecWaXkICQK0jL2y54juQIT6dNC42Fj4yGsaeXed5-ibzfTC18sMucaQ/exec";
+  var EMPLOYEES_URL   = "https://elyahu94-web.github.io/worker-manager/";
+  var CALENDAR_URL    = "https://elyahu94-web.github.io/-/";
+  // ══════════════════════════════════════
+
+  function openExternal(url, label) {
+    if (!url) { alert("לא הוזן קישור"); return; }
+    document.querySelectorAll(".pane").forEach(function(p){p.classList.remove("active");});
+    document.getElementById("pane-iframe").classList.add("active");
+    document.getElementById("mainIframe").src = url;
+    // הצג טאבים והדגש את הנכון
+    document.getElementById("appTabs").classList.add("show");
+    document.querySelectorAll(".app-tab").forEach(function(t){
+      t.classList.remove("active");
+    });
+    // מצא את הטאב שה-onclick שלו קורא לאותו URL
+    document.querySelectorAll(".app-tab").forEach(function(t){
+      try {
+        var fn = t.getAttribute("onclick")||"";
+        // הוצא שם variable מה-onclick
+        var match = fn.match(/openExternal\(([^)]+)\)/);
+        if (match) {
+          var varName = match[1].trim();
+          var varUrl  = eval(varName);
+          if (varUrl === url) t.classList.add("active");
+        }
+      } catch(e){}
+    });
+  }
+  function goHome(){
+    document.querySelectorAll(".pane").forEach(function(p){p.classList.remove("active");});
+    document.getElementById("pane-welcome").classList.add("active");
+    document.getElementById("appTabs").classList.remove("show");
+    document.querySelectorAll(".app-tab").forEach(function(t){t.classList.remove("active");});
+    document.getElementById("mainIframe").src="about:blank";
+  }
+var _emps = JSON.parse(localStorage.getItem("hub_emp")||"[]");
+var _tasks = JSON.parse(localStorage.getItem("hub_task")||"[]");
+var _evs = JSON.parse(localStorage.getItem("hub_ev")||"[]");
+var _cy = new Date().getFullYear(), _cm = new Date().getMonth();
+var _ei = -1, _ti = -1;
+var MONTHS = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+var SL = {active:"פעיל",part:"חלקי",leave:"חופשה",ended:"סיים"};
+var SC = {active:"chip-green",part:"chip-blue",leave:"chip-yellow",ended:"chip-red"};
+var PL = {low:"נמוכה",medium:"בינונית",high:"גבוהה"};
+var PC = {low:"chip-green",medium:"chip-yellow",high:"chip-red"};
+
+function sv(k,d){try{localStorage.setItem(k,JSON.stringify(d));}catch(e){}}
+
+function show(id){
+  document.querySelectorAll(".pane").forEach(function(p){p.classList.remove("active");});
+  document.querySelectorAll(".nav-item").forEach(function(n){n.classList.remove("active");});
+  document.getElementById("pane-"+id).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(function(n){
+    if((n.getAttribute("onclick")||"").indexOf("'"+id+"'")>-1) n.classList.add("active");
+  });
+  if(id==="icount"){var f=document.getElementById("ifIcount");if(f.src==="about:blank"&&ICOUNT_URL!=="YOUR_ICOUNT_URL_HERE")f.src=ICOUNT_URL;}
+  if(id==="sheets"){var fs=document.getElementById("ifSheets");if(fs.src==="about:blank"&&SHEETS_URL!=="YOUR_SHEETS_URL_HERE")fs.src=SHEETS_URL;}
+  if(id==="invoices"){var fi=document.getElementById("ifInvoices");if(fi.src==="about:blank"&&INVOICES_URL!=="YOUR_INVOICES_ZEREMDAROM_URL_HERE")fi.src=INVOICES_URL;}
+  if(id==="invoices2"){var fi2=document.getElementById("ifInvoices2");if(fi2.src==="about:blank"&&INVOICES2_URL!=="YOUR_INVOICES_ORSID_URL_HERE")fi2.src=INVOICES2_URL;}
+  if(id==="app3"){var fa=document.getElementById("ifApp3");if(fa.src==="about:blank"&&APP3_URL!=="YOUR_APP3_URL_HERE")fa.src=APP3_URL;}
+  if(id==="employees") rEmp();
+  if(id==="tasks") rTask();
+  if(id==="calendar") rCal();
+}
+
+function rEmp(){
+  var g=document.getElementById("empGrid");
+  if(!_emps.length){g.innerHTML="<div style='grid-column:1/-1;text-align:center;padding:60px;color:#94a3b8;font-size:15px'>אין עובדים - לחץ + הוסף עובד</div>";return;}
+  g.innerHTML=_emps.map(function(e,i){
+    return "<div class='emp-card'><div class='emp-avatar'>"+(e.f||"?")[0]+(e.l||"")[0]+"</div>"+
+    "<div class='emp-info'><div class='emp-name'>"+e.f+" "+e.l+"</div><div class='emp-role'>"+(e.ro||"")+"</div>"+
+    "<div style='display:flex;gap:6px;margin-bottom:8px'><span class='chip "+(SC[e.ss]||"chip-blue")+"'>"+(SL[e.ss]||e.ss)+"</span>"+
+    (e.ph?"<span class='chip chip-blue'>"+e.ph+"</span>":"")+
+    "</div><div style='display:flex;gap:6px'>"+
+    "<button class='btn btn-ghost' style='padding:5px 12px;font-size:12px' onclick='openEmpMo("+i+")'>עריכה</button>"+
+    "<button class='btn btn-red' onclick='delEmp("+i+")'>מחק</button>"+
+    "</div></div></div>";
+  }).join("");
+}
+
+function openEmpMo(i){
+  _ei=(i!==undefined)?i:-1;
+  var e=(_ei>=0)?_emps[_ei]:{};
+  document.getElementById("empMoT").textContent=_ei>=0?"עריכת עובד":"הוסף עובד";
+  ["eF","eL","eRo","ePh","eMl","eSt","eNo"].forEach(function(id,j){
+    var keys=["f","l","ro","ph","ml","st","no"];
+    document.getElementById(id).value=e[keys[j]]||"";
+  });
+  document.getElementById("eSs").value=e.ss||"active";
+  document.getElementById("empMo").classList.add("on");
+  setTimeout(function(){document.getElementById("eF").focus();},80);
+}
+function closeEmpMo(){document.getElementById("empMo").classList.remove("on");}
+function delEmp(i){if(!confirm("למחוק?"))return;_emps.splice(i,1);sv("hub_emp",_emps);rEmp();}
+function saveEmp(){
+  var f=document.getElementById("eF").value.trim();
+  if(!f){alert("חובה שם פרטי");return;}
+  var obj={f:f,l:document.getElementById("eL").value.trim(),ro:document.getElementById("eRo").value.trim(),
+    ph:document.getElementById("ePh").value.trim(),ml:document.getElementById("eMl").value.trim(),
+    st:document.getElementById("eSt").value,ss:document.getElementById("eSs").value,
+    no:document.getElementById("eNo").value.trim()};
+  if(_ei>=0)_emps[_ei]=obj;else _emps.push(obj);
+  sv("hub_emp",_emps);closeEmpMo();rEmp();
+}
+
+function rTask(){
+  var c=document.getElementById("taskCols");
+  var cols=[{id:"todo",label:"לביצוע",color:"#ef4444"},{id:"doing",label:"בתהליך",color:"#f59e0b"},{id:"done",label:"הושלם",color:"#16a34a"}];
+  var today=new Date().toISOString().split("T")[0];
+  c.innerHTML=cols.map(function(col){
+    var items=_tasks.filter(function(t){return t.st===col.id;});
+    return "<div class='task-col'><div class='task-col-header'><span style='width:10px;height:10px;background:"+col.color+";border-radius:50%;display:inline-block'></span>"+col.label+" ("+items.length+")</div>"+
+    items.map(function(t){
+      var ri=_tasks.indexOf(t);
+      var ov=t.du&&t.du<today&&t.st!=="done";
+      return "<div class='task-card' onclick='openTaskMo("+ri+")'><div class='task-title'>"+t.ti+"</div>"+
+      "<div class='task-meta'><span class='chip "+(PC[t.pr]||"chip-blue")+"'>"+(PL[t.pr]||"")+"</span>"+
+      (t.du?"<span style='color:"+(ov?"#ef4444":"#16a34a")+";font-weight:700;font-size:11px'>"+t.du.split("-").reverse().join("/")+"</span>":"")+
+      "</div>"+(t.ow?"<div style='font-size:11px;color:#94a3b8;margin-top:4px'>"+t.ow+"</div>":"")+
+      "</div>";
+    }).join("")+
+    "<button onclick='openTaskMo(null,\""+col.id+"\")' style='width:100%;padding:7px;background:#f1f5f9;border:none;border-radius:7px;font-size:12px;font-weight:600;color:#64748b;cursor:pointer;margin-top:4px'>+ הוסף</button>"+
+    "</div>";
+  }).join("");
+}
+function openTaskMo(i,ds){
+  _ti=(i!==undefined&&i!==null)?i:-1;
+  var t=(_ti>=0)?_tasks[_ti]:{};
+  document.getElementById("tTi").value=t.ti||"";
+  document.getElementById("tSt").value=t.st||ds||"todo";
+  document.getElementById("tPr").value=t.pr||"medium";
+  document.getElementById("tDu").value=t.du||"";
+  document.getElementById("tOw").value=t.ow||"";
+  document.getElementById("taskMo").classList.add("on");
+  setTimeout(function(){document.getElementById("tTi").focus();},80);
+}
+function closeTaskMo(){document.getElementById("taskMo").classList.remove("on");}
+function saveTask(){
+  var ti=document.getElementById("tTi").value.trim();
+  if(!ti){alert("חובה כותרת");return;}
+  var obj={ti:ti,st:document.getElementById("tSt").value,pr:document.getElementById("tPr").value,
+    du:document.getElementById("tDu").value,ow:document.getElementById("tOw").value.trim()};
+  if(_ti>=0)_tasks[_ti]=obj;else _tasks.push(obj);
+  sv("hub_task",_tasks);closeTaskMo();rTask();
+}
+
+function rCal(){
+  document.getElementById("calTitle").textContent=MONTHS[_cm]+" "+_cy;
+  var g=document.getElementById("calGrid");
+  var today=new Date();
+  var fd=new Date(_cy,_cm,1).getDay();
+  var dim=new Date(_cy,_cm+1,0).getDate();
+  var dp=new Date(_cy,_cm,0).getDate();
+  var days=["א","ב","ג","ד","ה","ו","ש"];
+  var h=days.map(function(d){return "<div class='cal-day-name'>"+d+"</div>";}).join("");
+  for(var i=fd-1;i>=0;i--)h+="<div class='cal-day other-month'><div class='day-num'>"+(dp-i)+"</div></div>";
+  for(var d=1;d<=dim;d++){
+    var ds=_cy+"-"+(_cm+1<10?"0":"")+(_cm+1)+"-"+(d<10?"0":"")+d;
+    var isT=today.getFullYear()===_cy&&today.getMonth()===_cm&&today.getDate()===d;
+    var de=_evs.filter(function(e){return e.dt===ds;});
+    h+="<div class='cal-day"+(isT?" today":"")+"' onclick='openEvMo(\""+ds+"\")'><div class='day-num'>"+d+"</div>"+
+    de.map(function(e){return "<div class='cal-event "+(e.co||"ev-blue")+"'>"+e.ti+"</div>";}).join("")+"</div>";
+  }
+  var fill=fd+dim;var rem=fill%7===0?0:7-(fill%7);
+  for(var k=1;k<=rem;k++)h+="<div class='cal-day other-month'><div class='day-num'>"+k+"</div></div>";
+  g.innerHTML=h;
+}
+function prevM(){_cm--;if(_cm<0){_cm=11;_cy--;}rCal();}
+function nextM(){_cm++;if(_cm>11){_cm=0;_cy++;}rCal();}
+function openEvMo(dt){
+  document.getElementById("evTi").value="";
+  document.getElementById("evDt").value=dt||new Date().toISOString().split("T")[0];
+  document.getElementById("evCo").value="ev-blue";
+  document.getElementById("evMo").classList.add("on");
+  setTimeout(function(){document.getElementById("evTi").focus();},80);
+}
+function closeEvMo(){document.getElementById("evMo").classList.remove("on");}
+function saveEv(){
+  var ti=document.getElementById("evTi").value.trim();
+  var dt=document.getElementById("evDt").value;
+  if(!ti||!dt){alert("חובה כותרת ותאריך");return;}
+  _evs.push({ti:ti,dt:dt,co:document.getElementById("evCo").value});
+  sv("hub_ev",_evs);closeEvMo();rCal();
+}
+</script>
+</body>
+</html>
