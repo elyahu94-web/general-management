@@ -161,12 +161,12 @@
           <div class="app-card" onclick="openExternal(INVOICES_URL)">
             <span class="ac-icon">&#128235;</span>
             <h3>חשבוניות זרם דרום</h3>
-            <p>שליפה אוטומטית מהמייל</p>
+            <p>שליפה אוטומטית</p>
           </div>
           <div class="app-card" onclick="openExternal(INVOICES2_URL)">
             <span class="ac-icon">&#128235;</span>
             <h3>חשבוניות אורסיד</h3>
-            <p>שליפה אוטומטית מהמייל</p>
+            <p>שליפה אוטומטית</p>
           </div>
           <div class="app-card" onclick="window.open(SHEETS_URL,'_blank')">
             <span class="ac-icon">&#128202;</span>
@@ -213,8 +213,7 @@
     </div>
 
     <!-- Main iframe -->
-    <div class="pane" id="pane-iframe" style="position:relative">
-      <div id="iframeLoader" style="display:none;position:absolute;inset:0;background:linear-gradient(135deg,#1e3d2a,#2a5c3a);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+    <div class="pane" id="pane-iframe" style="position:relative">      <div id="iframeLoader" style="display:none;position:absolute;inset:0;background:linear-gradient(135deg,#1e3d2a,#2a5c3a);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:16px">
         <div style="width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:#6abf69;border-radius:50%;animation:spin .8s linear infinite"></div>
         <div id="loaderLabel" style="color:rgba(255,255,255,.8);font-size:15px;font-weight:600">טוען...</div>
       </div>
@@ -354,6 +353,10 @@
     if (!url) { alert("לא הוזן קישור"); return; }
     document.querySelectorAll(".pane").forEach(function(p){p.classList.remove("active");});
     document.getElementById("pane-iframe").classList.add("active");
+    // בקש מסך מלא
+    var el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     // הצג loader
     var loader = document.getElementById("iframeLoader");
     var lbl    = document.getElementById("loaderLabel");
@@ -384,8 +387,12 @@
     var loader = document.getElementById("iframeLoader");
     if(loader) loader.classList.remove("show");
   }
-
   function goHome(){
+    // צא ממסך מלא
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
     document.querySelectorAll(".pane").forEach(function(p){p.classList.remove("active");});
     document.getElementById("pane-welcome").classList.add("active");
     document.getElementById("appTabs").classList.remove("show");
@@ -541,6 +548,13 @@ function saveEv(){
   _evs.push({ti:ti,dt:dt,co:document.getElementById("evCo").value});
   sv("hub_ev",_evs);closeEvMo();rCal();
 }
+
+  // ESC לסגירה
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && document.body.classList.contains("app-fullscreen")){
+      closeApp();
+    }
+  });
 </script>
 </body>
 </html>
