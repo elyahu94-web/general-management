@@ -36,8 +36,8 @@
     .welcome-box h1{font-size:34px;font-weight:900;margin-bottom:10px;}
     .welcome-box p{font-size:16px;color:rgba(255,255,255,.6);margin-bottom:40px;}
     .app-cards{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;max-width:1100px;}
-    .app-card{background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:28px 22px;width:210px;cursor:pointer;transition:all .25s;text-align:center;backdrop-filter:blur(4px);position:relative;z-index:1;}
-    .app-card:hover{background:rgba(0,0,0,.25);transform:translateY(-4px);border-color:rgba(255,255,255,.3);box-shadow:0 12px 30px rgba(0,0,0,.4);}
+    .app-card{background:transparent;border:1.5px solid rgba(255,255,255,.4);border-radius:16px;padding:28px 22px;width:210px;cursor:pointer;transition:all .25s;text-align:center;position:relative;z-index:1;}
+    .app-card:hover{background:rgba(255,255,255,.08);transform:translateY(-4px);border-color:rgba(255,255,255,.7);box-shadow:0 8px 24px rgba(0,0,0,.3);}
     .app-card .ac-icon{font-size:42px;margin-bottom:12px;display:block;}
     .app-card h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;}
     .app-card p{font-size:12px;color:rgba(255,255,255,.6);}
@@ -109,9 +109,9 @@
   <button class="app-tab" onclick="openExternal(ICOUNT_URL)" data-url="ICOUNT_URL">&#128200; ניהול ספקים</button>
   <button class="app-tab" onclick="openExternal(EMPLOYEES_URL)" data-url="EMPLOYEES_URL">&#128101; עובדים</button>
   <button class="app-tab" onclick="openExternal(CALENDAR_URL)" data-url="CALENDAR_URL">&#9989; משימות ויומן</button>
-  <button class="app-tab" onclick="window.open(SHEETS_URL,'_blank')" data-url="SHEETS_URL">&#128202; Sheets</button>
   <button class="app-tab" onclick="openExternal(INVOICES_URL)" data-url="INVOICES_URL">&#128235; חשבוניות זרם דרום</button>
   <button class="app-tab" onclick="openExternal(INVOICES2_URL)" data-url="INVOICES2_URL">&#128235; חשבוניות אורסיד</button>
+  <button class="app-tab" onclick="window.open(SHEETS_URL,'_blank')" data-url="SHEETS_URL">&#128202; Sheets</button>
 </div>
 <div class="layout">
   <div class="sidebar">
@@ -158,11 +158,6 @@
             <h3>משימות ויומן</h3>
             <p>מעקב ותזמון</p>
           </div>
-          <div class="app-card" onclick="window.open(SHEETS_URL,'_blank')">
-            <span class="ac-icon">&#128202;</span>
-            <h3>Google Sheets</h3>
-            <p>גיליונות וניתוח נתונים</p>
-          </div>
           <div class="app-card" onclick="openExternal(INVOICES_URL)">
             <span class="ac-icon">&#128235;</span>
             <h3>חשבוניות זרם דרום</h3>
@@ -172,6 +167,11 @@
             <span class="ac-icon">&#128235;</span>
             <h3>חשבוניות אורסיד</h3>
             <p>שליפה אוטומטית מהמייל</p>
+          </div>
+          <div class="app-card" onclick="window.open(SHEETS_URL,'_blank')">
+            <span class="ac-icon">&#128202;</span>
+            <h3>Google Sheets</h3>
+            <p>גיליונות וניתוח נתונים</p>
           </div>
         </div>
       </div>
