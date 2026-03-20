@@ -99,30 +99,6 @@
 
     @keyframes spin{to{transform:rotate(360deg)}}
     #iframeLoader.show{display:flex!important}
-
-    #pane-iframe{position:relative}
-    #iframeTopBar{
-      position:absolute;top:0;right:0;left:0;height:44px;
-      background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%);
-      display:flex;align-items:center;justify-content:space-between;
-      padding:0 16px;z-index:20;
-      opacity:0;transition:opacity .3s;pointer-events:none;
-    }
-    #iframeTopBar.visible{opacity:1;pointer-events:all;}
-    #iframeCloseBtn{
-      background:rgba(220,38,38,.9);border:none;color:#fff;
-      width:32px;height:32px;border-radius:50%;font-size:18px;
-      cursor:pointer;display:flex;align-items:center;justify-content:center;
-      box-shadow:0 2px 8px rgba(0,0,0,.4);font-weight:700;
-    }
-    #iframeCloseBtn:hover{background:#dc2626;}
-    #iframeAppLabel{color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.5);}
-    /* הסתר header וטאבים כשב-fullscreen */
-    body.app-fullscreen .header,
-    body.app-fullscreen #appTabs,
-    body.app-fullscreen .app-tabs{display:none!important;}
-    body.app-fullscreen .layout{height:100vh;}
-    body.app-fullscreen #pane-iframe{height:100vh;}
   </style>
 </head>
 <body>
@@ -185,12 +161,12 @@
           <div class="app-card" onclick="openExternal(INVOICES_URL)">
             <span class="ac-icon">&#128235;</span>
             <h3>חשבוניות זרם דרום</h3>
-            <p>שליפה אוטומטית</p>
+            <p>שליפה אוטומטית מהמייל</p>
           </div>
           <div class="app-card" onclick="openExternal(INVOICES2_URL)">
             <span class="ac-icon">&#128235;</span>
             <h3>חשבוניות אורסיד</h3>
-            <p>שליפה אוטומטית</p>
+            <p>שליפה אוטומטית מהמייל</p>
           </div>
           <div class="app-card" onclick="window.open(SHEETS_URL,'_blank')">
             <span class="ac-icon">&#128202;</span>
@@ -238,10 +214,6 @@
 
     <!-- Main iframe -->
     <div class="pane" id="pane-iframe" style="position:relative">
-      <div id="iframeTopBar">
-        <span id="iframeAppLabel"></span>
-        <button id="iframeCloseBtn" onclick="closeApp()" title="סגור (Escape)">&#10005;</button>
-      </div>
       <div id="iframeLoader" style="display:none;position:absolute;inset:0;background:linear-gradient(135deg,#1e3d2a,#2a5c3a);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:16px">
         <div style="width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:#6abf69;border-radius:50%;animation:spin .8s linear infinite"></div>
         <div id="loaderLabel" style="color:rgba(255,255,255,.8);font-size:15px;font-weight:600">טוען...</div>
@@ -382,9 +354,6 @@
     if (!url) { alert("לא הוזן קישור"); return; }
     document.querySelectorAll(".pane").forEach(function(p){p.classList.remove("active");});
     document.getElementById("pane-iframe").classList.add("active");
-    // fullscreen
-    document.body.classList.add("app-fullscreen");
-    if(label) document.getElementById("iframeAppLabel").textContent = label;
     // הצג loader
     var loader = document.getElementById("iframeLoader");
     var lbl    = document.getElementById("loaderLabel");
@@ -414,11 +383,6 @@
   function hideLoader(){
     var loader = document.getElementById("iframeLoader");
     if(loader) loader.classList.remove("show");
-  }
-
-  function closeApp(){
-    document.body.classList.remove("app-fullscreen");
-    goHome();
   }
 
   function goHome(){
@@ -577,21 +541,6 @@ function saveEv(){
   _evs.push({ti:ti,dt:dt,co:document.getElementById("evCo").value});
   sv("hub_ev",_evs);closeEvMo();rCal();
 }
-
-  // הצג X כשעכבר למעלה
-  document.addEventListener("mousemove", function(e){
-    var bar = document.getElementById("iframeTopBar");
-    if(!bar) return;
-    if(e.clientY < 80) bar.classList.add("visible");
-    else bar.classList.remove("visible");
-  });
-
-  // ESC לסגירה
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape" && document.body.classList.contains("app-fullscreen")){
-      closeApp();
-    }
-  });
 </script>
 </body>
 </html>
