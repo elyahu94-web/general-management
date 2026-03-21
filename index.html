@@ -247,7 +247,7 @@
         <div id="loaderLabel" style="color:rgba(255,255,255,.8);font-size:15px;font-weight:600">טוען...</div>
       </div>
       <iframe id="mainIframe" src="about:blank" style="width:100%;height:100%;border:none;flex:1"
-        onload="hideLoader()"></iframe>
+        onload="if(typeof hideLoader==='function')hideLoader()"></iframe>
     </div>
 
     <!-- Google Sheets -->
@@ -628,19 +628,26 @@ function refreshCurrent() {
 }
 
 // ══════════════════════════════════════
-//  מערכת כניסה + הרשאות
+//  מערכת כניסה + הרשאות (localStorage)
 // ══════════════════════════════════════
 var _hubUser = null;
 var _HUB_SESSION = "hub_session_v1";
+var _HUB_USERS_KEY = "hub_users_v1";
+
+function _getHubUsers() {
+  try { return JSON.parse(localStorage.getItem(_HUB_USERS_KEY) || "[]"); } catch(e) { return []; }
+}
+function _saveHubUsers(users) {
+  localStorage.setItem(_HUB_USERS_KEY, JSON.stringify(users));
+}
 
 function hubShowLogin() {
   document.getElementById("hubLogin").classList.add("on");
   document.getElementById("hubLoginErr").textContent = "";
-  google.script.run.withSuccessHandler(function(r) {
-    if (r.ok && r.users && r.users.length === 0) {
-      document.getElementById("hubLoginSub").textContent = "הגדרה ראשונה — צור משתמש מנהל";
-    }
-  }).withFailureHandler(function(){}).hubGetUsers();
+  var users = _getHubUsers();
+  if (!users.length) {
+    document.getElementById("hubLoginSub").textContent = "הגדרה ראשונה — צור משתמש מנהל";
+  }
   setTimeout(function(){ document.getElementById("hubUser").focus(); }, 100);
 }
 
@@ -652,21 +659,32 @@ function hubDoLogin() {
   if (!user) { err.textContent = "הכנס שם משתמש"; return; }
   if (!pass) { err.textContent = "הכנס סיסמא"; return; }
   btn.disabled = true; btn.textContent = "⏳ בודק..."; err.textContent = "";
-  google.script.run
-    .withSuccessHandler(function(r) {
-      btn.disabled = false; btn.textContent = "🔐 כניסה";
-      if (r.ok) {
-        _hubUser = { username: r.username, role: r.role, apps: r.apps || [] };
-        try { sessionStorage.setItem(_HUB_SESSION, JSON.stringify(_hubUser)); } catch(e) {}
-        document.getElementById("hubLogin").classList.remove("on");
-        hubApplyPermissions();
-      } else { err.textContent = "❌ " + (r.err || "שגוי"); }
-    })
-    .withFailureHandler(function(e) {
-      btn.disabled = false; btn.textContent = "🔐 כניסה";
-      err.textContent = "❌ שגיאת חיבור";
-    })
-    .hubLogin(user, pass);
+
+  var users = _getHubUsers();
+  // משתמש ראשון — מנהל
+  if (!users.length) {
+    if (pass.length < 4) { btn.disabled = false; btn.textContent = "🔐 כניסה"; err.textContent = "סיסמא חייבת להיות לפחות 4 תווים"; return; }
+    users.push({ username: user, password: pass, role: "admin", apps: [] });
+    _saveHubUsers(users);
+    _hubUser = { username: user, role: "admin", apps: [] };
+    sessionStorage.setItem(_HUB_SESSION, JSON.stringify(_hubUser));
+    document.getElementById("hubLogin").classList.remove("on");
+    hubApplyPermissions();
+    btn.disabled = false; btn.textContent = "🔐 כניסה";
+    return;
+  }
+  // חפש משתמש
+  var found = null;
+  for (var i = 0; i < users.length; i++) {
+    if (users[i].username.toLowerCase() === user.toLowerCase()) { found = users[i]; break; }
+  }
+  btn.disabled = false; btn.textContent = "🔐 כניסה";
+  if (!found) { err.textContent = "❌ שם משתמש לא נמצא"; return; }
+  if (found.password !== pass) { err.textContent = "❌ סיסמא שגויה"; return; }
+  _hubUser = { username: found.username, role: found.role, apps: found.apps || [] };
+  sessionStorage.setItem(_HUB_SESSION, JSON.stringify(_hubUser));
+  document.getElementById("hubLogin").classList.remove("on");
+  hubApplyPermissions();
 }
 
 function hubLogout() {
@@ -693,44 +711,55 @@ function openHubUsersMo() {
   document.getElementById("hubNewUser").value = "";
   document.getElementById("hubNewPass").value = "";
   document.querySelectorAll("#hubAppChecks input").forEach(function(cb) { cb.checked = false; });
-  google.script.run.withSuccessHandler(function(r) {
-    if (!r.ok) return;
-    var list = document.getElementById("hubUsersList");
-    if (!r.users.length) { list.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:10px;font-size:13px">אין משתמשים</div>'; return; }
-    list.innerHTML = '<div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px">משתמשים קיימים:</div>' +
-      r.users.map(function(u) {
-        var appsStr = u.role==="admin" ? "גישה מלאה" : (u.apps||[]).join(", ") || "ללא";
-        return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8faff;border-radius:8px;margin-bottom:6px;flex-wrap:wrap">' +
-          '<span style="font-weight:700;font-size:13px;min-width:80px">' + u.username + '</span>' +
-          '<span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:' + (u.role==="admin"?"#fef3c7;color:#92400e":"#f0f9ff;color:#0369a1") + '">' + (u.role==="admin"?"👑 מנהל":"👤 משתמש") + '</span>' +
-          '<span style="font-size:11px;color:#64748b;flex:1">📋 ' + appsStr + '</span>' +
-          '<button onclick="hubDeleteUser(\'' + u.username + '\')" class="btn btn-red">מחק</button></div>';
-      }).join("");
-  }).withFailureHandler(function(){}).hubGetUsers();
+  _renderHubUsersList();
   document.getElementById("hubUsersMo").classList.add("on");
 }
 function closeHubUsersMo() { document.getElementById("hubUsersMo").classList.remove("on"); }
+
+function _renderHubUsersList() {
+  var users = _getHubUsers();
+  var list = document.getElementById("hubUsersList");
+  if (!users.length) { list.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:10px;font-size:13px">אין משתמשים</div>'; return; }
+  list.innerHTML = '<div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px">משתמשים קיימים:</div>' +
+    users.map(function(u) {
+      var appsStr = u.role === "admin" ? "גישה מלאה" : (u.apps || []).join(", ") || "ללא";
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8faff;border-radius:8px;margin-bottom:6px;flex-wrap:wrap">' +
+        '<span style="font-weight:700;font-size:13px;min-width:80px">' + u.username + '</span>' +
+        '<span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:' + (u.role==="admin"?"#fef3c7;color:#92400e":"#f0f9ff;color:#0369a1") + '">' + (u.role==="admin"?"👑 מנהל":"👤 משתמש") + '</span>' +
+        '<span style="font-size:11px;color:#64748b;flex:1">📋 ' + appsStr + '</span>' +
+        '<button onclick="hubDeleteUser(\'' + u.username + '\')" class="btn btn-red">מחק</button></div>';
+    }).join("");
+}
 
 function hubSaveUser() {
   var username = document.getElementById("hubNewUser").value.trim();
   var password = document.getElementById("hubNewPass").value;
   var msg = document.getElementById("hubUsersMsg");
-  if (!username) { msg.style.color="#dc2626"; msg.textContent="חובה שם משתמש"; return; }
+  if (!username) { msg.style.color = "#dc2626"; msg.textContent = "חובה שם משתמש"; return; }
   var apps = [];
   document.querySelectorAll("#hubAppChecks input:checked").forEach(function(cb) { apps.push(cb.value); });
-  msg.style.color="#64748b"; msg.textContent="שומר...";
-  google.script.run
-    .withSuccessHandler(function(r) {
-      if (r.ok) { msg.style.color="#16a34a"; msg.textContent=r.message; openHubUsersMo(); }
-      else { msg.style.color="#dc2626"; msg.textContent="❌ "+(r.err||"שגיאה"); }
-    })
-    .withFailureHandler(function(e) { msg.style.color="#dc2626"; msg.textContent="❌ "+e.message; })
-    .hubSaveUser(username, password, apps);
+  var users = _getHubUsers();
+  var idx = -1;
+  for (var i = 0; i < users.length; i++) {
+    if (users[i].username.toLowerCase() === username.toLowerCase()) { idx = i; break; }
+  }
+  if (idx > -1) {
+    if (password) users[idx].password = password;
+    users[idx].apps = apps;
+  } else {
+    if (!password || password.length < 4) { msg.style.color = "#dc2626"; msg.textContent = "סיסמא חייבת להיות לפחות 4 תווים"; return; }
+    users.push({ username: username, password: password, role: "user", apps: apps });
+  }
+  _saveHubUsers(users);
+  msg.style.color = "#16a34a"; msg.textContent = "✅ משתמש נשמר";
+  _renderHubUsersList();
 }
 
 function hubDeleteUser(username) {
   if (!confirm("למחוק את " + username + "?")) return;
-  google.script.run.withSuccessHandler(function() { openHubUsersMo(); }).hubDeleteUser(username);
+  var users = _getHubUsers().filter(function(u) { return u.username.toLowerCase() !== username.toLowerCase(); });
+  _saveHubUsers(users);
+  _renderHubUsersList();
 }
 
 // ══ שחזור session בטעינה ══
