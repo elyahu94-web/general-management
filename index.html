@@ -99,19 +99,48 @@
 
     @keyframes spin{to{transform:rotate(360deg)}}
     #iframeLoader.show{display:flex!important}
+    #hubLogin{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a3a2a,#2d5a3d);z-index:9999;justify-content:center;align-items:center;}
+    #hubLogin.on{display:flex;}
+    .hub-login-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:40px 36px;width:360px;text-align:center;backdrop-filter:blur(10px);}
+    .hub-login-box h2{color:#fff;font-size:22px;margin-bottom:6px;}
+    .hub-login-box p{color:rgba(255,255,255,.5);font-size:13px;margin-bottom:24px;}
+    .hub-login-box input{width:100%;padding:12px;border:1.5px solid rgba(255,255,255,.2);border-radius:10px;font-size:15px;font-family:inherit;background:rgba(255,255,255,.07);color:#fff;margin-bottom:12px;text-align:center;}
+    .hub-login-box input::placeholder{color:rgba(255,255,255,.3);}
+    .hub-login-box button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+    .hub-login-err{color:#fca5a5;font-size:13px;min-height:20px;margin-bottom:8px;}
   </style>
 </head>
 <body>
+<!-- מסך כניסה -->
+<div id="hubLogin">
+  <div class="hub-login-box">
+    <div style="font-size:48px;margin-bottom:12px">🔐</div>
+    <h2>מרכז ניהול עסקי</h2>
+    <p id="hubLoginSub">הכנס פרטי כניסה</p>
+    <input type="text" id="hubUser" placeholder="שם משתמש" onkeydown="if(event.key==='Enter')document.getElementById('hubPass').focus()">
+    <input type="password" id="hubPass" placeholder="סיסמא" onkeydown="if(event.key==='Enter')hubDoLogin()">
+    <div class="hub-login-err" id="hubLoginErr"></div>
+    <button onclick="hubDoLogin()" id="hubLoginBtn">🔐 כניסה</button>
+  </div>
+</div>
+
 <div class="header">
-  <div class="header-logo"><button onclick="goHome()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 12px;color:#fff;cursor:pointer;font-size:18px" title="דף הבית">&#127968;</button> מרכז ניהול עסקי</div><div style="margin-right:auto"><img src="https://drive.google.com/thumbnail?id=1Qw6C_9chtgQRBv9ZmI4z-UxDvSdWmLus&sz=w400" alt="אורסיד" style="height:76px;object-fit:contain;filter:brightness(10)" onerror="this.style.display='none'"></div>
+  <div class="header-logo"><button onclick="goHome()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 12px;color:#fff;cursor:pointer;font-size:18px" title="דף הבית">&#127968;</button> מרכז ניהול עסקי</div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="hubUserTag" style="font-size:12px;color:rgba(255,255,255,.6)"></span>
+    <button id="hubAdminBtn" onclick="openHubUsersMo()" style="display:none;background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 12px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">👥 הרשאות</button>
+    <button onclick="hubLogout()" style="background:rgba(255,255,255,.1);border:none;border-radius:8px;padding:6px 12px;color:#fca5a5;cursor:pointer;font-size:13px;font-weight:700">🚪 יציאה</button>
+  </div>
+  <div style="margin-right:auto"><img src="https://drive.google.com/thumbnail?id=1Qw6C_9chtgQRBv9ZmI4z-UxDvSdWmLus&sz=w400" alt="אורסיד" style="height:76px;object-fit:contain;filter:brightness(10)" onerror="this.style.display='none'"></div>
 </div>
 <div class="app-tabs" id="appTabs">
-  <button class="app-tab" onclick="openExternal(ICOUNT_URL)" data-url="ICOUNT_URL">&#128200; ניהול ספקים</button>
-  <button class="app-tab" onclick="openExternal(EMPLOYEES_URL)" data-url="EMPLOYEES_URL">&#128101; עובדים</button>
-  <button class="app-tab" onclick="openExternal(CALENDAR_URL)" data-url="CALENDAR_URL">&#9989; משימות ויומן</button>
-  <button class="app-tab" onclick="openExternal(INVOICES_URL)" data-url="INVOICES_URL">&#128235; חשבוניות זרם דרום</button>
-  <button class="app-tab" onclick="openExternal(INVOICES2_URL)" data-url="INVOICES2_URL">&#128235; חשבוניות אורסיד</button>
-  <button class="app-tab" onclick="window.open(SHEETS_URL,'_blank')" data-url="SHEETS_URL">&#128202; Sheets</button>
+  <button class="app-tab" onclick="openExternal(ICOUNT_URL)" data-app="icount" data-url="ICOUNT_URL">&#128200; ניהול ספקים</button>
+  <button class="app-tab" onclick="openExternal(EMPLOYEES_URL)" data-app="employees" data-url="EMPLOYEES_URL">&#128101; עובדים</button>
+  <button class="app-tab" onclick="openExternal(CALENDAR_URL)" data-app="calendar" data-url="CALENDAR_URL">&#9989; משימות ויומן</button>
+  <button class="app-tab" onclick="openExternal(INVOICES_URL)" data-app="invoices" data-url="INVOICES_URL">&#128235; חשבוניות זרם דרום</button>
+  <button class="app-tab" onclick="openExternal(INVOICES2_URL)" data-app="invoices2" data-url="INVOICES2_URL">&#128235; חשבוניות אורסיד</button>
+  <button class="app-tab" onclick="window.open(SHEETS_URL,'_blank')" data-app="sheets" data-url="SHEETS_URL">&#128202; Sheets</button>
+  <button onclick="refreshCurrent()" style="padding:8px 14px;font-size:13px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;border-radius:8px 8px 0 0;border:none;background:rgba(255,255,255,.1);font-family:inherit;margin-right:auto" title="רענן תוכנה נוכחית">&#128260; רענן</button>
 </div>
 <div class="layout">
   <div class="sidebar">
@@ -143,32 +172,32 @@
           <p style="font-size:12px;color:rgba(255,255,255,.4);letter-spacing:1px">חברה לעבודות חשמל ותקשורת</p>
         </div>
         <div class="app-cards">
-          <div class="app-card" onclick="openExternal(ICOUNT_URL)">
+          <div class="app-card" data-app="icount" onclick="openExternal(ICOUNT_URL)">
             <span class="ac-icon">&#128200;</span>
             <h3>תזרים iCount</h3>
             <p>הכנסות, הוצאות, ספקים</p>
           </div>
-          <div class="app-card" onclick="openExternal(EMPLOYEES_URL)">
+          <div class="app-card" data-app="employees" onclick="openExternal(EMPLOYEES_URL)">
             <span class="ac-icon">&#128101;</span>
             <h3>עובדים</h3>
             <p>ניהול כוח אדם</p>
           </div>
-          <div class="app-card" onclick="openExternal(CALENDAR_URL)">
+          <div class="app-card" data-app="calendar" onclick="openExternal(CALENDAR_URL)">
             <span class="ac-icon">&#9989;</span>
             <h3>משימות ויומן</h3>
             <p>מעקב ותזמון</p>
           </div>
-          <div class="app-card" onclick="openExternal(INVOICES_URL)">
+          <div class="app-card" data-app="invoices" onclick="openExternal(INVOICES_URL)">
             <span class="ac-icon">&#128235;</span>
             <h3>חשבוניות זרם דרום</h3>
             <p>שליפה אוטומטית</p>
           </div>
-          <div class="app-card" onclick="openExternal(INVOICES2_URL)">
+          <div class="app-card" data-app="invoices2" onclick="openExternal(INVOICES2_URL)">
             <span class="ac-icon">&#128235;</span>
             <h3>חשבוניות אורסיד</h3>
             <p>שליפה אוטומטית</p>
           </div>
-          <div class="app-card" onclick="window.open(SHEETS_URL,'_blank')">
+          <div class="app-card" data-app="sheets" onclick="window.open(SHEETS_URL,'_blank')">
             <span class="ac-icon">&#128202;</span>
             <h3>Google Sheets</h3>
             <p>גיליונות וניתוח נתונים</p>
@@ -337,6 +366,36 @@
   </div>
 </div>
 
+<!-- ניהול משתמשים -->
+<div class="mo" id="hubUsersMo" onclick="if(event.target===this)closeHubUsersMo()">
+  <div class="mbox" style="width:560px">
+    <div class="mhdr"><span>👥 ניהול משתמשים והרשאות</span><button class="mcls" onclick="closeHubUsersMo()">&#10005;</button></div>
+    <div class="mbody">
+      <div id="hubUsersList" style="margin-bottom:16px"></div>
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:16px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px">➕ הוסף / עדכן משתמש</div>
+        <div class="g2">
+          <div class="field"><label>שם משתמש</label><input id="hubNewUser" placeholder="לדוגמא: פקידה"></div>
+          <div class="field"><label>סיסמא</label><input id="hubNewPass" type="password" placeholder="••••"></div>
+        </div>
+        <div class="field"><label>הרשאות — סמן אילו אפליקציות המשתמש יראה</label>
+          <div id="hubAppChecks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" value="icount" checked> 📊 ניהול ספקים</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" value="employees"> 👥 עובדים</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" value="calendar"> ✅ משימות</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" value="sheets"> 📊 Sheets</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" value="invoices"> 📫 חשבוניות זרם דרום</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" value="invoices2"> 📫 חשבוניות אורסיד</label>
+          </div>
+        </div>
+        <button class="btn btn-green" onclick="hubSaveUser()" style="width:100%">💾 שמור משתמש</button>
+      </div>
+      <div id="hubUsersMsg" style="min-height:18px;font-size:13px;font-weight:700;margin-top:8px"></div>
+    </div>
+    <div class="mftr"><button class="btn btn-ghost" onclick="closeHubUsersMo()">סגור</button></div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════
   //  הכנס כאן את הקישורים שלך
@@ -364,6 +423,8 @@
     else if(lbl) lbl.textContent = "טוען...";
     loader.classList.add("show");
     document.getElementById("mainIframe").src = url;
+    // שמור מצב לשחזור אחרי רענון
+    try { sessionStorage.setItem("hub_active_url", url); } catch(e) {}
     // הצג טאבים והדגש את הנכון
     document.getElementById("appTabs").classList.add("show");
     document.querySelectorAll(".app-tab").forEach(function(t){
@@ -398,6 +459,7 @@
     document.getElementById("appTabs").classList.remove("show");
     document.querySelectorAll(".app-tab").forEach(function(t){t.classList.remove("active");});
     document.getElementById("mainIframe").src="about:blank";
+    try { sessionStorage.removeItem("hub_active_url"); } catch(e) {}
   }
 var _emps = JSON.parse(localStorage.getItem("hub_emp")||"[]");
 var _tasks = JSON.parse(localStorage.getItem("hub_task")||"[]");
@@ -555,6 +617,136 @@ function saveEv(){
       closeApp();
     }
   });
+
+// ══ רענן תוכנה נוכחית ══
+function refreshCurrent() {
+  var iframe = document.getElementById("mainIframe");
+  var url = iframe.src;
+  if (!url || url === "about:blank") return;
+  iframe.src = "about:blank";
+  setTimeout(function() { iframe.src = url; }, 100);
+}
+
+// ══════════════════════════════════════
+//  מערכת כניסה + הרשאות
+// ══════════════════════════════════════
+var _hubUser = null;
+var _HUB_SESSION = "hub_session_v1";
+
+function hubShowLogin() {
+  document.getElementById("hubLogin").classList.add("on");
+  document.getElementById("hubLoginErr").textContent = "";
+  google.script.run.withSuccessHandler(function(r) {
+    if (r.ok && r.users && r.users.length === 0) {
+      document.getElementById("hubLoginSub").textContent = "הגדרה ראשונה — צור משתמש מנהל";
+    }
+  }).withFailureHandler(function(){}).hubGetUsers();
+  setTimeout(function(){ document.getElementById("hubUser").focus(); }, 100);
+}
+
+function hubDoLogin() {
+  var user = document.getElementById("hubUser").value.trim();
+  var pass = document.getElementById("hubPass").value;
+  var err = document.getElementById("hubLoginErr");
+  var btn = document.getElementById("hubLoginBtn");
+  if (!user) { err.textContent = "הכנס שם משתמש"; return; }
+  if (!pass) { err.textContent = "הכנס סיסמא"; return; }
+  btn.disabled = true; btn.textContent = "⏳ בודק..."; err.textContent = "";
+  google.script.run
+    .withSuccessHandler(function(r) {
+      btn.disabled = false; btn.textContent = "🔐 כניסה";
+      if (r.ok) {
+        _hubUser = { username: r.username, role: r.role, apps: r.apps || [] };
+        try { sessionStorage.setItem(_HUB_SESSION, JSON.stringify(_hubUser)); } catch(e) {}
+        document.getElementById("hubLogin").classList.remove("on");
+        hubApplyPermissions();
+      } else { err.textContent = "❌ " + (r.err || "שגוי"); }
+    })
+    .withFailureHandler(function(e) {
+      btn.disabled = false; btn.textContent = "🔐 כניסה";
+      err.textContent = "❌ שגיאת חיבור";
+    })
+    .hubLogin(user, pass);
+}
+
+function hubLogout() {
+  if (!confirm("לצאת מהמערכת?")) return;
+  _hubUser = null;
+  try { sessionStorage.removeItem(_HUB_SESSION); sessionStorage.removeItem("hub_active_url"); } catch(e) {}
+  goHome();
+  hubShowLogin();
+}
+
+function hubApplyPermissions() {
+  if (!_hubUser) return;
+  var isAdmin = _hubUser.role === "admin";
+  var apps = isAdmin ? ["icount","employees","calendar","sheets","invoices","invoices2"] : (_hubUser.apps || []);
+  document.getElementById("hubAdminBtn").style.display = isAdmin ? "" : "none";
+  document.getElementById("hubUserTag").textContent = (isAdmin ? "👑 " : "👤 ") + _hubUser.username;
+  document.querySelectorAll("[data-app]").forEach(function(el) {
+    el.style.display = apps.indexOf(el.getAttribute("data-app")) > -1 ? "" : "none";
+  });
+}
+
+function openHubUsersMo() {
+  document.getElementById("hubUsersMsg").textContent = "";
+  document.getElementById("hubNewUser").value = "";
+  document.getElementById("hubNewPass").value = "";
+  document.querySelectorAll("#hubAppChecks input").forEach(function(cb) { cb.checked = false; });
+  google.script.run.withSuccessHandler(function(r) {
+    if (!r.ok) return;
+    var list = document.getElementById("hubUsersList");
+    if (!r.users.length) { list.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:10px;font-size:13px">אין משתמשים</div>'; return; }
+    list.innerHTML = '<div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px">משתמשים קיימים:</div>' +
+      r.users.map(function(u) {
+        var appsStr = u.role==="admin" ? "גישה מלאה" : (u.apps||[]).join(", ") || "ללא";
+        return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8faff;border-radius:8px;margin-bottom:6px;flex-wrap:wrap">' +
+          '<span style="font-weight:700;font-size:13px;min-width:80px">' + u.username + '</span>' +
+          '<span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:' + (u.role==="admin"?"#fef3c7;color:#92400e":"#f0f9ff;color:#0369a1") + '">' + (u.role==="admin"?"👑 מנהל":"👤 משתמש") + '</span>' +
+          '<span style="font-size:11px;color:#64748b;flex:1">📋 ' + appsStr + '</span>' +
+          '<button onclick="hubDeleteUser(\'' + u.username + '\')" class="btn btn-red">מחק</button></div>';
+      }).join("");
+  }).withFailureHandler(function(){}).hubGetUsers();
+  document.getElementById("hubUsersMo").classList.add("on");
+}
+function closeHubUsersMo() { document.getElementById("hubUsersMo").classList.remove("on"); }
+
+function hubSaveUser() {
+  var username = document.getElementById("hubNewUser").value.trim();
+  var password = document.getElementById("hubNewPass").value;
+  var msg = document.getElementById("hubUsersMsg");
+  if (!username) { msg.style.color="#dc2626"; msg.textContent="חובה שם משתמש"; return; }
+  var apps = [];
+  document.querySelectorAll("#hubAppChecks input:checked").forEach(function(cb) { apps.push(cb.value); });
+  msg.style.color="#64748b"; msg.textContent="שומר...";
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) { msg.style.color="#16a34a"; msg.textContent=r.message; openHubUsersMo(); }
+      else { msg.style.color="#dc2626"; msg.textContent="❌ "+(r.err||"שגיאה"); }
+    })
+    .withFailureHandler(function(e) { msg.style.color="#dc2626"; msg.textContent="❌ "+e.message; })
+    .hubSaveUser(username, password, apps);
+}
+
+function hubDeleteUser(username) {
+  if (!confirm("למחוק את " + username + "?")) return;
+  google.script.run.withSuccessHandler(function() { openHubUsersMo(); }).hubDeleteUser(username);
+}
+
+// ══ שחזור session בטעינה ══
+(function() {
+  try {
+    var saved = sessionStorage.getItem(_HUB_SESSION);
+    if (saved) {
+      _hubUser = JSON.parse(saved);
+      hubApplyPermissions();
+      var savedUrl = sessionStorage.getItem("hub_active_url");
+      if (savedUrl) openExternal(savedUrl);
+      return;
+    }
+  } catch(e) {}
+  hubShowLogin();
+})();
 </script>
 </body>
 </html>
