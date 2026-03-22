@@ -106,12 +106,11 @@
     .hub-login-box p{color:rgba(255,255,255,.5);font-size:13px;margin-bottom:24px;}
     .hub-login-box input{width:100%;padding:12px;border:1.5px solid rgba(255,255,255,.2);border-radius:10px;font-size:15px;font-family:inherit;background:rgba(255,255,255,.07);color:#fff;margin-bottom:12px;text-align:center;}
     .hub-login-box input::placeholder{color:rgba(255,255,255,.3);}
-    .hub-login-box button{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+    .hub-login-box .hub-btn{width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
     .hub-login-err{color:#fca5a5;font-size:13px;min-height:20px;margin-bottom:8px;}
   </style>
 </head>
 <body>
-<!-- מסך כניסה -->
 <div id="hubLogin">
   <div class="hub-login-box">
     <div style="font-size:48px;margin-bottom:12px">🔐</div>
@@ -119,11 +118,13 @@
     <p id="hubLoginSub">הכנס פרטי כניסה</p>
     <input type="text" id="hubUser" placeholder="שם משתמש" onkeydown="if(event.key==='Enter')document.getElementById('hubPass').focus()">
     <input type="password" id="hubPass" placeholder="סיסמא" onkeydown="if(event.key==='Enter')hubDoLogin()">
+    <label style="display:flex;align-items:center;gap:8px;margin:4px 0 10px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.4);user-select:none;justify-content:center">
+      <input type="checkbox" id="hubRemember" style="width:16px;height:16px;accent-color:#16a34a"> זכור אותי
+    </label>
     <div class="hub-login-err" id="hubLoginErr"></div>
-    <button onclick="hubDoLogin()" id="hubLoginBtn">🔐 כניסה</button>
+    <button class="hub-btn" onclick="hubDoLogin()" id="hubLoginBtn">🔐 כניסה</button>
   </div>
 </div>
-
 <div class="header">
   <div class="header-logo"><button onclick="goHome()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 12px;color:#fff;cursor:pointer;font-size:18px" title="דף הבית">&#127968;</button> מרכז ניהול עסקי</div>
   <div style="display:flex;gap:8px;align-items:center">
@@ -140,7 +141,7 @@
   <button class="app-tab" onclick="openExternal(INVOICES_URL)" data-app="invoices" data-url="INVOICES_URL">&#128235; חשבוניות זרם דרום</button>
   <button class="app-tab" onclick="openExternal(INVOICES2_URL)" data-app="invoices2" data-url="INVOICES2_URL">&#128235; חשבוניות אורסיד</button>
   <button class="app-tab" onclick="window.open(SHEETS_URL,'_blank')" data-app="sheets" data-url="SHEETS_URL">&#128202; Sheets</button>
-  <button onclick="refreshCurrent()" style="padding:8px 14px;font-size:13px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;border-radius:8px 8px 0 0;border:none;background:rgba(255,255,255,.1);font-family:inherit;margin-right:auto" title="רענן תוכנה נוכחית">&#128260; רענן</button>
+  <button onclick="refreshCurrent()" style="padding:8px 14px;font-size:13px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;border-radius:8px 8px 0 0;border:none;background:rgba(255,255,255,.1);font-family:inherit;margin-right:auto">&#128260; רענן</button>
 </div>
 <div class="layout">
   <div class="sidebar">
@@ -378,7 +379,7 @@
           <div class="field"><label>שם משתמש</label><input id="hubNewUser" placeholder="לדוגמא: פקידה"></div>
           <div class="field"><label>סיסמא</label><input id="hubNewPass" type="password" placeholder="••••"></div>
         </div>
-        <div class="field"><label>הרשאות — סמן אילו אפליקציות המשתמש יראה</label>
+        <div class="field"><label>הרשאות — סמן אילו אפליקציות יראה</label>
           <div id="hubAppChecks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
             <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" value="icount" checked> 📊 ניהול ספקים</label>
             <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" value="employees"> 👥 עובדים</label>
@@ -423,7 +424,6 @@
     else if(lbl) lbl.textContent = "טוען...";
     loader.classList.add("show");
     document.getElementById("mainIframe").src = url;
-    // שמור מצב לשחזור אחרי רענון
     try { sessionStorage.setItem("hub_active_url", url); } catch(e) {}
     // הצג טאבים והדגש את הנכון
     document.getElementById("appTabs").classList.add("show");
@@ -627,64 +627,79 @@ function refreshCurrent() {
   setTimeout(function() { iframe.src = url; }, 100);
 }
 
-// ══════════════════════════════════════
-//  מערכת כניסה + הרשאות (localStorage)
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════════
+//  מערכת כניסה + הרשאות
+//  קוראת ל-Apps Script API דרך fetch()
+//  ← שנה את ה-URL למטה אחרי Deploy
+// ══════════════════════════════════════════════════════
+var HUB_API_URL = "https://script.google.com/macros/s/AKfycbzRBeKjz2uts4vIBrfrmcchvHVYpJVtnxQI3gdK1V9VzZoUBtmX3wb_s9REiEvxJLYQ/exec";
+// ↑↑↑ אחרי Deploy → Web app, הדבק את ה-URL כאן ↑↑↑
+
 var _hubUser = null;
 var _HUB_SESSION = "hub_session_v1";
-var _HUB_USERS_KEY = "hub_users_v1";
+var _HUB_REMEMBER = "hub_remember_v1";
 
-function _getHubUsers() {
-  try { return JSON.parse(localStorage.getItem(_HUB_USERS_KEY) || "[]"); } catch(e) { return []; }
-}
-function _saveHubUsers(users) {
-  localStorage.setItem(_HUB_USERS_KEY, JSON.stringify(users));
+function _hubApi(action, params) {
+  var url = HUB_API_URL + "?action=" + action;
+  if (params) {
+    Object.keys(params).forEach(function(k) {
+      if (params[k] !== undefined && params[k] !== null) {
+        url += "&" + k + "=" + encodeURIComponent(params[k]);
+      }
+    });
+  }
+  return fetch(url).then(function(r) { return r.json(); });
 }
 
 function hubShowLogin() {
   document.getElementById("hubLogin").classList.add("on");
   document.getElementById("hubLoginErr").textContent = "";
-  var users = _getHubUsers();
-  if (!users.length) {
-    document.getElementById("hubLoginSub").textContent = "הגדרה ראשונה — צור משתמש מנהל";
-  }
+  // בדוק אם משתמש ראשון
+  _hubApi("getUsers").then(function(r) {
+    if (r.ok && r.users && r.users.length === 0) {
+      document.getElementById("hubLoginSub").textContent = "הגדרה ראשונה — צור משתמש מנהל";
+    }
+  }).catch(function(){});
+  // טען פרטים שמורים
+  try {
+    var saved = JSON.parse(localStorage.getItem(_HUB_REMEMBER) || "null");
+    if (saved) {
+      document.getElementById("hubUser").value = saved.u || "";
+      document.getElementById("hubPass").value = saved.p || "";
+      document.getElementById("hubRemember").checked = true;
+    }
+  } catch(e) {}
   setTimeout(function(){ document.getElementById("hubUser").focus(); }, 100);
 }
 
 function hubDoLogin() {
   var user = document.getElementById("hubUser").value.trim();
   var pass = document.getElementById("hubPass").value;
+  var remember = document.getElementById("hubRemember").checked;
   var err = document.getElementById("hubLoginErr");
   var btn = document.getElementById("hubLoginBtn");
   if (!user) { err.textContent = "הכנס שם משתמש"; return; }
   if (!pass) { err.textContent = "הכנס סיסמא"; return; }
   btn.disabled = true; btn.textContent = "⏳ בודק..."; err.textContent = "";
 
-  var users = _getHubUsers();
-  // משתמש ראשון — מנהל
-  if (!users.length) {
-    if (pass.length < 4) { btn.disabled = false; btn.textContent = "🔐 כניסה"; err.textContent = "סיסמא חייבת להיות לפחות 4 תווים"; return; }
-    users.push({ username: user, password: pass, role: "admin", apps: [] });
-    _saveHubUsers(users);
-    _hubUser = { username: user, role: "admin", apps: [] };
-    sessionStorage.setItem(_HUB_SESSION, JSON.stringify(_hubUser));
-    document.getElementById("hubLogin").classList.remove("on");
-    hubApplyPermissions();
-    btn.disabled = false; btn.textContent = "🔐 כניסה";
-    return;
-  }
-  // חפש משתמש
-  var found = null;
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].username.toLowerCase() === user.toLowerCase()) { found = users[i]; break; }
-  }
-  btn.disabled = false; btn.textContent = "🔐 כניסה";
-  if (!found) { err.textContent = "❌ שם משתמש לא נמצא"; return; }
-  if (found.password !== pass) { err.textContent = "❌ סיסמא שגויה"; return; }
-  _hubUser = { username: found.username, role: found.role, apps: found.apps || [] };
-  sessionStorage.setItem(_HUB_SESSION, JSON.stringify(_hubUser));
-  document.getElementById("hubLogin").classList.remove("on");
-  hubApplyPermissions();
+  _hubApi("login", { username: user, password: pass })
+    .then(function(r) {
+      btn.disabled = false; btn.textContent = "🔐 כניסה";
+      if (r.ok) {
+        _hubUser = { username: r.username, role: r.role, apps: r.apps || [] };
+        sessionStorage.setItem(_HUB_SESSION, JSON.stringify(_hubUser));
+        if (remember) localStorage.setItem(_HUB_REMEMBER, JSON.stringify({u:user,p:pass}));
+        else localStorage.removeItem(_HUB_REMEMBER);
+        document.getElementById("hubLogin").classList.remove("on");
+        hubApplyPermissions();
+      } else {
+        err.textContent = "❌ " + (r.err || "שגוי");
+      }
+    })
+    .catch(function(e) {
+      btn.disabled = false; btn.textContent = "🔐 כניסה";
+      err.textContent = "❌ שגיאת חיבור — בדוק שה-API URL הוגדר";
+    });
 }
 
 function hubLogout() {
@@ -706,60 +721,49 @@ function hubApplyPermissions() {
   });
 }
 
+// ══ ניהול משתמשים (מנהל) ══
 function openHubUsersMo() {
   document.getElementById("hubUsersMsg").textContent = "";
   document.getElementById("hubNewUser").value = "";
   document.getElementById("hubNewPass").value = "";
   document.querySelectorAll("#hubAppChecks input").forEach(function(cb) { cb.checked = false; });
-  _renderHubUsersList();
+  _hubApi("getUsers").then(function(r) {
+    if (!r.ok) return;
+    var list = document.getElementById("hubUsersList");
+    if (!r.users.length) { list.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:10px;font-size:13px">אין משתמשים</div>'; return; }
+    list.innerHTML = '<div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px">משתמשים קיימים:</div>' +
+      r.users.map(function(u) {
+        var appsStr = u.role === "admin" ? "גישה מלאה" : (u.apps||[]).join(", ") || "ללא";
+        return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8faff;border-radius:8px;margin-bottom:6px;flex-wrap:wrap">' +
+          '<span style="font-weight:700;font-size:13px;min-width:80px">' + u.username + '</span>' +
+          '<span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:' + (u.role==="admin"?"#fef3c7;color:#92400e":"#f0f9ff;color:#0369a1") + '">' + (u.role==="admin"?"👑 מנהל":"👤 משתמש") + '</span>' +
+          '<span style="font-size:11px;color:#64748b;flex:1">📋 ' + appsStr + '</span>' +
+          '<button onclick="hubDeleteUser(\'' + u.username + '\')" class="btn btn-red">מחק</button></div>';
+      }).join("");
+  }).catch(function(){});
   document.getElementById("hubUsersMo").classList.add("on");
 }
 function closeHubUsersMo() { document.getElementById("hubUsersMo").classList.remove("on"); }
-
-function _renderHubUsersList() {
-  var users = _getHubUsers();
-  var list = document.getElementById("hubUsersList");
-  if (!users.length) { list.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:10px;font-size:13px">אין משתמשים</div>'; return; }
-  list.innerHTML = '<div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px">משתמשים קיימים:</div>' +
-    users.map(function(u) {
-      var appsStr = u.role === "admin" ? "גישה מלאה" : (u.apps || []).join(", ") || "ללא";
-      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8faff;border-radius:8px;margin-bottom:6px;flex-wrap:wrap">' +
-        '<span style="font-weight:700;font-size:13px;min-width:80px">' + u.username + '</span>' +
-        '<span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:' + (u.role==="admin"?"#fef3c7;color:#92400e":"#f0f9ff;color:#0369a1") + '">' + (u.role==="admin"?"👑 מנהל":"👤 משתמש") + '</span>' +
-        '<span style="font-size:11px;color:#64748b;flex:1">📋 ' + appsStr + '</span>' +
-        '<button onclick="hubDeleteUser(\'' + u.username + '\')" class="btn btn-red">מחק</button></div>';
-    }).join("");
-}
 
 function hubSaveUser() {
   var username = document.getElementById("hubNewUser").value.trim();
   var password = document.getElementById("hubNewPass").value;
   var msg = document.getElementById("hubUsersMsg");
-  if (!username) { msg.style.color = "#dc2626"; msg.textContent = "חובה שם משתמש"; return; }
+  if (!username) { msg.style.color="#dc2626"; msg.textContent="חובה שם משתמש"; return; }
   var apps = [];
   document.querySelectorAll("#hubAppChecks input:checked").forEach(function(cb) { apps.push(cb.value); });
-  var users = _getHubUsers();
-  var idx = -1;
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].username.toLowerCase() === username.toLowerCase()) { idx = i; break; }
-  }
-  if (idx > -1) {
-    if (password) users[idx].password = password;
-    users[idx].apps = apps;
-  } else {
-    if (!password || password.length < 4) { msg.style.color = "#dc2626"; msg.textContent = "סיסמא חייבת להיות לפחות 4 תווים"; return; }
-    users.push({ username: username, password: password, role: "user", apps: apps });
-  }
-  _saveHubUsers(users);
-  msg.style.color = "#16a34a"; msg.textContent = "✅ משתמש נשמר";
-  _renderHubUsersList();
+  msg.style.color="#64748b"; msg.textContent="שומר...";
+  _hubApi("saveUser", { username: username, password: password, apps: JSON.stringify(apps) })
+    .then(function(r) {
+      if (r.ok) { msg.style.color="#16a34a"; msg.textContent=r.message; openHubUsersMo(); }
+      else { msg.style.color="#dc2626"; msg.textContent="❌ "+(r.err||"שגיאה"); }
+    })
+    .catch(function(e) { msg.style.color="#dc2626"; msg.textContent="❌ שגיאת חיבור"; });
 }
 
 function hubDeleteUser(username) {
   if (!confirm("למחוק את " + username + "?")) return;
-  var users = _getHubUsers().filter(function(u) { return u.username.toLowerCase() !== username.toLowerCase(); });
-  _saveHubUsers(users);
-  _renderHubUsersList();
+  _hubApi("deleteUser", { username: username }).then(function() { openHubUsersMo(); });
 }
 
 // ══ שחזור session בטעינה ══
