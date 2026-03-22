@@ -2,6 +2,7 @@
 <html dir="rtl" lang="he">
 <head>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🏢</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🏢</text></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>מרכז ניהול עסקי</title>
@@ -426,7 +427,7 @@
     // בקש מסך מלא
     try {
       var el = document.documentElement;
-      if (el.requestFullscreen) el.requestFullscreen();
+      if (el.requestFullscreen) el.requestFullscreen().catch(function(){});
       else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     } catch(e) {}
     // הצג loader
@@ -434,8 +435,14 @@
     var lbl    = document.getElementById("loaderLabel");
     if(lbl && label) lbl.textContent = "טוען " + label + "...";
     else if(lbl) lbl.textContent = "טוען...";
-    loader.classList.add("show");
-    document.getElementById("mainIframe").src = url;
+    // טען iframe רק אם URL השתנה
+    var iframe = document.getElementById("mainIframe");
+    var currentSrc = "";
+    try { currentSrc = iframe.contentWindow.location.href; } catch(e) { currentSrc = iframe.src; }
+    if (currentSrc.indexOf(url) === -1) {
+      loader.classList.add("show");
+      iframe.src = url;
+    }
     try { sessionStorage.setItem("hub_active_url", url); } catch(e) {}
     // הצג טאבים והדגש את הנכון
     document.getElementById("appTabs").classList.add("show");
