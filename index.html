@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🏢</text></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>מרכז ניהול עסקי</title>
@@ -423,9 +424,11 @@
     document.querySelectorAll(".pane").forEach(function(p){p.classList.remove("active");});
     document.getElementById("pane-iframe").classList.add("active");
     // בקש מסך מלא
-    var el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    try {
+      var el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    } catch(e) {}
     // הצג loader
     var loader = document.getElementById("iframeLoader");
     var lbl    = document.getElementById("loaderLabel");
