@@ -32,6 +32,15 @@
     background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);
     background-size:30px 30px;
   }
+    .welcome-pane.clean{background:#f0f2f5 !important;}
+    .welcome-pane.clean::before,.welcome-pane.clean::after{display:none;}
+    .welcome-pane.clean .welcome-box{color:#1a1a2e;}
+    .welcome-pane.clean .welcome-box h1{color:#1a1a2e;text-shadow:none;}
+    .welcome-pane.clean .welcome-box p{color:#64748b;}
+    .welcome-pane.clean .app-card{background:#fff;border-color:#e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+    .welcome-pane.clean .app-card:hover{background:#f8fafc;box-shadow:0 6px 20px rgba(0,0,0,.1);}
+    .welcome-pane.clean .app-card h3{color:#0f172a;}
+    .welcome-pane.clean .app-card p{color:#64748b;}
     .welcome-box{text-align:center;color:#fff;padding:40px;}
     .welcome-box h1{font-size:34px;font-weight:900;margin-bottom:10px;}
     .welcome-box p{font-size:16px;color:rgba(255,255,255,.6);margin-bottom:40px;}
@@ -164,7 +173,7 @@
       <div class="welcome-box">
         <div style="margin-bottom:36px;position:relative;z-index:1">
 
-          <img src="https://upload.wikimedia.org/wikipedia/he/9/92/Baba_Sali.jpg"
+          <img id="hubHeroImg" src="https://upload.wikimedia.org/wikipedia/he/9/92/Baba_Sali.jpg"
                alt="הבבא סאלי זיע"
                style="width:80px;height:96px;object-fit:cover;object-position:top;border-radius:12px;border:3px solid rgba(255,255,255,.3);box-shadow:0 8px 32px rgba(0,0,0,.5);margin-bottom:16px">
           <h1 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.3)">ברוך הבא</h1>
@@ -632,7 +641,7 @@ function refreshCurrent() {
 //  קוראת ל-Apps Script API דרך fetch()
 //  ← שנה את ה-URL למטה אחרי Deploy
 // ══════════════════════════════════════════════════════
-var HUB_API_URL = "https://script.google.com/macros/s/AKfycbwvIBM5-wxpk8_y8BHx6_nKf1n2fwdxesEit6IDKHdN2IW88oDBDVr6OTVrUQENKqZh9A/exec";
+var HUB_API_URL = "PUT_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 // ↑↑↑ אחרי Deploy → Web app, הדבק את ה-URL כאן ↑↑↑
 
 var _hubUser = null;
@@ -719,6 +728,16 @@ function hubApplyPermissions() {
   document.querySelectorAll("[data-app]").forEach(function(el) {
     el.style.display = apps.indexOf(el.getAttribute("data-app")) > -1 ? "" : "none";
   });
+  // רקע + תמונה — רק למנהל
+  var wp = document.getElementById("pane-welcome");
+  var heroImg = document.getElementById("hubHeroImg");
+  if (isAdmin) {
+    wp.classList.remove("clean");
+    heroImg.style.display = "";
+  } else {
+    wp.classList.add("clean");
+    heroImg.style.display = "none";
+  }
 }
 
 // ══ ניהול משתמשים (מנהל) ══
